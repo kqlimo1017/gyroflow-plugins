@@ -77,3 +77,5 @@ For manual installation steps and more details, refer to [the documentation](htt
 Distributed under the GPLv3 License with App Store Exception. See [LICENSE](https://github.com/gyroflow/gyroflow-plugins/blob/main/LICENSE) for more information.
 
 <!-- zh-build 1795186917 -->
+
+<!-- zh-build 1795187176 -->
