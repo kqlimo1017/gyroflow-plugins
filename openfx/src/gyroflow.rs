@@ -230,12 +230,12 @@ impl Execute for GyroflowPlugin {
                 let src_frame = in_args.get_src_frame().ok();
 
                 if !has_gyro {
-                    instance_data.plugin.set_status(&mut instance_data.params, "No gyro data in this file", "This file has no motion data (a transcode or an export of the original, or a camera without gyro). Use the original camera file, or open it in Gyroflow to load the motion data from another file.", false);
+                    instance_data.plugin.set_status(&mut instance_data.params, "此文件没有陀螺仪数据", "此文件不含运动数据（可能是转码/导出的副本，或相机本身没有陀螺仪）。请使用相机原始文件，或在 Gyroflow 中为它载入其它文件的运动数据。", false);
                 } else if (src_fps - fps).abs() > 0.01 && src_frame.is_none() {
                     let status = format!("Timeline fps mismatch! ({fps:.3} clip, {src_fps:.3} timeline)");
-                    instance_data.plugin.set_status(&mut instance_data.params, &status, "Timeline frame rate doesn't match the clip frame rate! Use the plugin in Fusion instead", false);
+                    instance_data.plugin.set_status(&mut instance_data.params, &status, "时间线帧率与片段帧率不一致！请改用 Fusion 页面中的插件", false);
                 } else if !has_accurate_timestamps && !has_offsets {
-                    instance_data.plugin.set_status(&mut instance_data.params, "Not synced. Open in Gyroflow", "Gyro data is not synced with the video, open the video in Gyroflow and add sync points (eg. by doing autosync)", false);
+                    instance_data.plugin.set_status(&mut instance_data.params, "尚未同步。请在 Gyroflow 中打开", "陀螺仪数据与视频未同步。请在 Gyroflow 中打开该视频并添加同步点（例如使用自动同步）", false);
                 } else {
                     instance_data.plugin.set_status(&mut instance_data.params, "OK", "OK", true);
                 }
@@ -597,6 +597,88 @@ impl Execute for GyroflowPlugin {
 
                 let mut param_set = effect.parameter_set()?;
 
+
+                /// 界面标签汉化：只影响显示文字，参数 ID 一律不变（项目文件兼容）
+                #[allow(clippy::match_same_arms)]
+                fn zh_label(label: &'static str) -> &'static str {
+                    match label {
+                        "Gyroflow project" => "Gyroflow 项目",
+                        "Adjust parameters" => "参数调整",
+                        "Keyframes" => "关键帧",
+                        "Additional settings" => "附加设置",
+                        "Info" => "信息",
+                        "Browse" => "浏览",
+                        "Load for current file" => "载入当前文件项目",
+                        "Load preset/lens profile" => "载入预设/镜头配置",
+                        "Open project in Gyroflow" => "在 Gyroflow 中打开项目",
+                        "Reload project" => "重新载入项目",
+                        "Last saved project" => "上次保存的项目",
+                        "Fit to timeline" => "适应时间线",
+                        "Swap" => "交换宽高",
+                        "Recalculate keyframes" => "重算关键帧",
+                        "Save as default" => "存为默认",
+                        "Status" => "状态",
+                        "Smoothness" => "平滑度",
+                        "Zoom limit" => "变焦上限",
+                        "Lens correction" => "镜头校正",
+                        "Horizon lock" => "地平线锁定",
+                        "Horizon lock amount" => "地平线锁定强度",
+                        "Horizon roll" => "地平线横滚",
+                        "FOV" => "视场角",
+                        "Input rotation" => "输入旋转",
+                        "Video rotation" => "视频旋转",
+                        "Video speed" => "视频速度",
+                        "Width" => "宽度",
+                        "Height" => "高度",
+                        "Additional yaw" => "附加偏航",
+                        "Additional pitch" => "附加俯仰",
+                        "Use Gyroflow's keyframes" => "使用 Gyroflow 关键帧",
+                        "Stabilization overview" => "稳定效果总览",
+                        "Don't draw outside source clip" => "不绘制到源画面外",
+                        "Embed .gyroflow data in plugin" => "插件内嵌 .gyroflow 数据",
+                        "Disable Gyroflow's stretch" => "禁用 Gyroflow 拉伸",
+                        "Interpolation" => "插值算法",
+                        "Integration method" => "积分方式",
+                        "Output size" => "输出尺寸",
+                        "Adjust stabilization to speed" => "按速度调整稳定强度",
+                        "Loaded project" => "已载入项目",
+                        "Loaded preset" => "已载入预设",
+                        "Loaded lens" => "已载入镜头配置",
+                        _ => label,
+                    }
+                }
+
+                /// 提示文案汉化：同样只影响显示
+                #[allow(clippy::match_same_arms)]
+                fn zh_hint(hint: &'static str) -> &'static str {
+                    match hint {
+                        "Try to load project file for current video file, or try to stabilize that video file directly" => "尝试为当前视频自动载入项目文件，或直接稳定该视频（需要 Resolve Studio 的外部脚本支持）",
+                        "Browse for the Gyroflow project file" => "浏览并选择 Gyroflow 项目文件（.gyroflow）",
+                        "Browse for the lens profile or a preset" => "浏览并选择镜头配置文件或预设",
+                        "Open in Gyroflow" => "在 Gyroflow 应用中打开当前项目",
+                        "Reload currently loaded project" => "重新读取当前已载入的项目文件",
+                        "Load most recently saved project in the Gyroflow app" => "载入 Gyroflow 应用最近一次保存的项目",
+                        "Horizon lock roll adjustment" => "地平线锁定的横滚微调量",
+                        "Additional pitch rotation" => "额外的俯仰旋转（手动补偿）",
+                        "Additional yaw rotation" => "额外的偏航旋转（手动补偿）",
+                        "Use this slider to change video speed or keyframe it, instead of built-in speed changes in the editor" => "用这个滑块（可打关键帧）改变视频速度，代替剪辑软件自带的变速",
+                        "If you used Input stretch in the lens profile in Gyroflow, and you de-stretched the video separately in your editor (by setting anamorphic squeeze factor), check this to disable Gyroflow's internal stretching." => "若镜头配置里用了输入拉伸，且你已在剪辑软件里做过变形宽银幕反挤压，勾选此项可关闭 Gyroflow 内部的拉伸",
+                        "IMU integration method" => "IMU 姿态积分算法",
+                        "Save the current smoothness, zoom limit, lens correction, horizon lock and FOV as the defaults for every newly loaded clip (lens_profiles/default.gyroflow)" => "把当前平滑度、变焦上限、镜头校正、地平线锁定和视场角存为默认值，之后新载入的片段都用它（lens_profiles/default.gyroflow）",
+                        "Use internal Gyroflow's keyframes, instead of the editor ones." => "使用 Gyroflow 内部的关键帧，而不是剪辑软件的关键帧",
+                        "When you speed ramp the clip, let Gyroflow adjust the stabilization amount to the video speed." => "对片段做速度斜坡时，让 Gyroflow 按视频速度自动调整稳定强度",
+                        "Recalculate keyframes after adjusting the splines (in Fusion mode)" => "调整曲线后重新计算关键帧（Fusion 模式下使用）",
+                        "Set the output size to the timeline dimensions" => "把输出尺寸设为时间线尺寸",
+                        "Swap width and height" => "交换宽高",
+                        "Zooms out the view to see the stabilization results. Disable this before rendering." => "缩小视图以观察防抖轨迹，正式渲染前请关闭",
+                        "When clip and timeline aspect ratio don't match, draw the final image inside the source clip, instead of drawing outside it." => "当片段与时间线比例不一致时，把成片画在源画面范围内，而不是画到外面",
+                        "If you intend to share the project to someone else, the plugin can embed the Gyroflow project data including gyro data inside the video editor project. This way you don't have to share .gyroflow project files. Enabling this option will make the project bigger." => "要把工程发给别人时，可把 Gyroflow 项目数据（含陀螺仪）内嵌进剪辑工程，这样无需另传 .gyroflow 文件；代价是工程体积变大",
+                        "Loaded project or video file" => "已载入的项目或视频文件",
+                        "Loaded lens profile" => "已载入的镜头配置",
+                        _ => hint,
+                    }
+                }
+
                 fn define_param(param_set: &mut ParamSetHandle, x: ParameterType, group: Option<&'static str>) -> Result<Int> {
                     match x {
                         ParameterType::HiddenString { id } => {
@@ -612,23 +694,23 @@ impl Execute for GyroflowPlugin {
                             }
                             let mut param = param_set.param_define_button(id)?;
                             let _ = param.set_script_name(id);
-                            param.set_label(label)?;
-                            param.set_hint(hint)?;
+                            param.set_label(zh_label(label))?;
+                            param.set_hint(zh_hint(hint))?;
                             if let Some(group) = group { param.set_parent(group)?; }
                         }
                         ParameterType::TextBox { id, label, hint } => {
                             let mut param = param_set.param_define_string(id)?;
                             let _ = param.set_script_name(id);
                             param.set_string_type(ParamStringType::SingleLine)?;
-                            param.set_label(label)?;
-                            param.set_hint(hint)?;
+                            param.set_label(zh_label(label))?;
+                            param.set_hint(zh_hint(hint))?;
                             if let Some(group) = group { param.set_parent(group)?; }
                         }
                         ParameterType::Text { id, label, hint } => {
                             let mut param = param_set.param_define_string(id)?;
                             param.set_string_type(ParamStringType::SingleLine)?;
-                            param.set_label(label)?;
-                            param.set_hint(hint)?;
+                            param.set_label(zh_label(label))?;
+                            param.set_hint(zh_hint(hint))?;
                             //param.set_enabled(false)?;
                             if let Some(group) = group { param.set_parent(group)?; }
                         }
@@ -637,24 +719,24 @@ impl Execute for GyroflowPlugin {
                             param.set_default(default)?;
                             param.set_display_min(min)?;
                             param.set_display_max(max)?;
-                            param.set_label(label)?;
-                            param.set_hint(hint)?;
+                            param.set_label(zh_label(label))?;
+                            param.set_hint(zh_hint(hint))?;
                             let _ = param.set_script_name(id);
                             if let Some(group) = group { param.set_parent(group)?; }
                         }
                         ParameterType::Checkbox { id, label, hint, default } => {
                             if id == "StabilizationSpeedRamp" { return OK; }
                             let mut param = param_set.param_define_boolean(id)?;
-                            param.set_label(label)?;
-                            param.set_hint(hint)?;
+                            param.set_label(zh_label(label))?;
+                            param.set_hint(zh_hint(hint))?;
                             param.set_default(default)?;
                             let _ = param.set_script_name(id);
                             if let Some(group) = group { param.set_parent(group)?; }
                         }
                         ParameterType::Select { id, label, hint, options, default } => {
                             let mut param = param_set.param_define_choice(id)?;
-                            param.set_label(label)?;
-                            param.set_hint(hint)?;
+                            param.set_label(zh_label(label))?;
+                            param.set_hint(zh_hint(hint))?;
                             param.set_default(options.iter().position(|x| *x == default).unwrap_or(0) as i32)?;
                             param.set_choices(&options)?;
                             let _ = param.set_script_name(id);
@@ -662,7 +744,7 @@ impl Execute for GyroflowPlugin {
                         }
                         ParameterType::Group { id, label, parameters, opened } => {
                             let mut param = param_set.param_define_group(id)?;
-                            param.set_label(label)?;
+                            param.set_label(zh_label(label))?;
                             param.set_group_open(opened)?;
                             if let Some(group) = group { param.set_parent(group)?; }
 
